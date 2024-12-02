@@ -2,7 +2,7 @@ advent_of_code::solution!(2);
 
 use std::cmp::Ordering;
 
-fn validate_input_p1(input: &Vec<u32>) -> bool {
+fn validate_input_p1(input: &[u32]) -> bool {
     input
         .iter()
         .fold(
@@ -30,7 +30,7 @@ fn validate_input_p2(input: &Vec<u32>) -> bool {
     }
 
     for i in 0..input.len() {
-        let mut input2 = input.clone();
+        let mut input2 = input.to_owned();
         input2.remove(i);
         if validate_input_p1(&input2) {
             return true;
@@ -50,7 +50,7 @@ pub fn part_one(input: &str) -> Option<usize> {
                 .map(|nb| nb.parse::<u32>().expect("parsing failed"))
                 .collect::<Vec<u32>>()
         })
-        .filter(validate_input_p1)
+        .filter(|s| validate_input_p1(s))
         .count()
         .into()
 }
