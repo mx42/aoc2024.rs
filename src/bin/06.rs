@@ -11,12 +11,12 @@ enum Dir {
 }
 
 impl Dir {
-    fn to_vec(&self) -> (i8, i8) {
+    fn to_vec(self) -> (i8, i8) {
         match self {
-            Dir::Up    => ( 0, -1),
-            Dir::Right => ( 1,  0),
-            Dir::Down  => ( 0,  1),
-            Dir::Left  => (-1,  0),
+            Dir::Up => (0, -1),
+            Dir::Right => (1, 0),
+            Dir::Down => (0, 1),
+            Dir::Left => (-1, 0),
         }
     }
 
@@ -44,18 +44,18 @@ impl Pos {
     fn move_towards(&self, v: (i8, i8), max: &Self) -> Option<Self> {
         let new_x: isize = self.x as isize + v.0 as isize;
         let new_y: isize = self.y as isize + v.1 as isize;
-        if new_x >= 0
-            && (new_x as usize) < max.x
-            && new_y >= 0
-            && (new_y as usize) < max.y {
-            Some(Pos { x: new_x as usize, y: new_y as usize })
+        if new_x >= 0 && (new_x as usize) < max.x && new_y >= 0 && (new_y as usize) < max.y {
+            Some(Pos {
+                x: new_x as usize,
+                y: new_y as usize,
+            })
         } else {
             None
         }
     }
 
     fn is_at_limit(&self, max: &Self) -> bool {
-        self.x == max.x - 1|| self.y == max.y - 1
+        self.x == max.x - 1 || self.y == max.y - 1
     }
 }
 
@@ -96,7 +96,8 @@ impl std::fmt::Debug for State {
                 }
                 // screw the cpu
                 let match_walk = self
-                    .walked.clone()
+                    .walked
+                    .clone()
                     .into_iter()
                     .filter(|g| g.pos == pos)
                     .collect::<Vec<_>>();
@@ -110,9 +111,7 @@ impl std::fmt::Debug for State {
         }
         Ok(())
     }
-    
 }
-
 
 impl State {
     fn step(self) -> Option<Self> {
@@ -120,30 +119,28 @@ impl State {
             return None;
         }
         let guard_walk_direction = self.guard.facing.to_vec();
-        let guard_walk = successors(
-            Some(self.guard.pos),
-            |pos| {
-                if let Some(new_pos) = pos.move_towards(guard_walk_direction, &self.map_size) {
-                    if !self.walls.contains(&new_pos) {
-                        return Some(new_pos)
-                    }
+        let guard_walk = successors(Some(self.guard.pos), |pos| {
+            if let Some(new_pos) = pos.move_towards(guard_walk_direction, &self.map_size) {
+                if !self.walls.contains(&new_pos) {
+                    return Some(new_pos);
                 }
-                None
             }
-        )
-            .collect::<Vec<Pos>>();
+            None
+        })
+        .collect::<Vec<Pos>>();
         let guard_new_pos = guard_walk.last().unwrap().clone();
         let mut walked: Vec<Guard> = self.walked.clone();
-        walked.extend(
-            guard_walk.iter().map(|p| Guard { pos: p.clone(), facing: self.guard.facing })
-        );
-        
+        walked.extend(guard_walk.iter().map(|p| Guard {
+            pos: p.clone(),
+            facing: self.guard.facing,
+        }));
+
         Some(Self {
             guard: Guard {
                 pos: guard_new_pos,
                 facing: self.guard.facing.rotate90(),
             },
-            walked: walked,
+            walked,
             ..self
         })
     }
@@ -154,8 +151,7 @@ impl State {
 }
 
 fn parse_line(line: &str, line_nb: usize) -> (Vec<Pos>, Option<Pos>) {
-    line
-        .chars()
+    line.chars()
         .enumerate()
         .fold(
             (Vec::<Pos>::new(), None),
@@ -163,21 +159,16 @@ fn parse_line(line: &str, line_nb: usize) -> (Vec<Pos>, Option<Pos>) {
                 '#' => {
                     wpos.push(Pos::init(pos, line_nb));
                     (wpos, gpos)
-                },
-                '^' => {
-                    (wpos, Some(Pos::init(pos, line_nb)))
-                },
-                _ => (wpos, gpos)
-            }
+                }
+                '^' => (wpos, Some(Pos::init(pos, line_nb))),
+                _ => (wpos, gpos),
+            },
         )
 }
 
 fn parse_input(input: &str) -> State {
     let input = input.lines().collect::<Vec<_>>();
-    let size = Pos::init(
-        input[0].len(),
-        input.len()
-    );
+    let size = Pos::init(input[0].len(), input.len());
     let data = input
         .into_iter()
         .enumerate()
@@ -190,14 +181,14 @@ fn parse_input(input: &str) -> State {
                     Some(_) => (gl_wpos, gpos),
                     _ => (gl_wpos, gl_gpos),
                 }
-            }
+            },
         );
     if data.1.is_none() {
         panic!("Guard position not found?!");
     }
     let guard: Guard = Guard {
         pos: data.1.unwrap(),
-        facing: Dir::Up
+        facing: Dir::Up,
     };
     State {
         walls: data.0,
@@ -209,10 +200,9 @@ fn parse_input(input: &str) -> State {
 
 pub fn part_one(input: &str) -> Option<usize> {
     let state = parse_input(input);
-    let last_state = successors(
-        Some(state),
-        |s| s.clone().step())
-        .last().unwrap();
+    let last_state = successors(Some(state), |s| s.clone().step())
+        .last()
+        .unwrap();
     // println!("{:?}", last_state);
     let mut visited = last_state
         .walked
@@ -221,12 +211,12 @@ pub fn part_one(input: &str) -> Option<usize> {
         .collect::<Vec<&Pos>>();
     visited.sort();
     visited.dedup();
-    
+
     Some(visited.len())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    let state = parse_input(input);
+pub fn part_two(_input: &str) -> Option<usize> {
+    // let state = parse_input(input);
     None
 }
 
