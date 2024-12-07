@@ -30,7 +30,7 @@ impl Dir {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Pos {
     x: usize,
     y: usize,
@@ -82,6 +82,7 @@ struct State {
     walked: Vec<Guard>,
     guard: Guard,
     map_size: Pos,
+    is_looping: bool,
 }
 
 impl std::fmt::Debug for State {
@@ -115,7 +116,7 @@ impl std::fmt::Debug for State {
 
 impl State {
     fn step(self) -> Option<Self> {
-        if self.is_last_step() {
+        if self.is_last_step() || self.is_looping {
             return None;
         }
         let guard_walk_direction = self.guard.facing.to_vec();
@@ -128,25 +129,50 @@ impl State {
             None
         })
         .collect::<Vec<Pos>>();
-        let guard_new_pos = guard_walk.last().unwrap().clone();
+        let guard = Guard {
+            pos: *guard_walk.last().unwrap(),
+            facing: self.guard.facing.rotate90(),
+        };
+        let is_looping = self.walked.contains(&guard);
+
         let mut walked: Vec<Guard> = self.walked.clone();
         walked.extend(guard_walk.iter().map(|p| Guard {
-            pos: p.clone(),
+            pos: *p,
             facing: self.guard.facing,
         }));
 
         Some(Self {
-            guard: Guard {
-                pos: guard_new_pos,
-                facing: self.guard.facing.rotate90(),
-            },
+            guard,
             walked,
+            is_looping,
             ..self
         })
     }
 
     fn is_last_step(&self) -> bool {
         self.guard.pos.is_at_limit(&self.map_size)
+    }
+
+    fn get_last_state(&self) -> Self {
+        successors(Some(self.clone()), |s| s.clone().step())
+            .last()
+            .unwrap()
+    }
+
+    fn add_wall(&self, wall: Pos) -> Self {
+        let mut walls = self.walls.clone();
+        walls.push(wall);
+        Self {
+            walls,
+            ..self.clone()
+        }
+    }
+
+    fn get_visited_pos(&self) -> Vec<Pos> {
+        let mut visited: Vec<Pos> = self.walked.iter().map(|g| g.pos).collect();
+        visited.sort();
+        visited.dedup();
+        visited
     }
 }
 
@@ -195,29 +221,27 @@ fn parse_input(input: &str) -> State {
         guard: guard.clone(),
         walked: vec![guard],
         map_size: size,
+        is_looping: false,
     }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let state = parse_input(input);
-    let last_state = successors(Some(state), |s| s.clone().step())
-        .last()
-        .unwrap();
-    // println!("{:?}", last_state);
-    let mut visited = last_state
-        .walked
-        .iter()
-        .map(|g| &g.pos)
-        .collect::<Vec<&Pos>>();
-    visited.sort();
-    visited.dedup();
-
-    Some(visited.len())
+    parse_input(input)
+        .get_last_state()
+        .get_visited_pos()
+        .len()
+        .into()
 }
 
-pub fn part_two(_input: &str) -> Option<usize> {
-    // let state = parse_input(input);
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let start = parse_input(input);
+    start
+        .get_last_state()
+        .get_visited_pos()
+        .into_iter()
+        .filter(|p| *p != start.guard.pos && start.add_wall(*p).get_last_state().is_looping)
+        .count()
+        .into()
 }
 
 #[cfg(test)]
@@ -233,6 +257,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(6));
     }
 }
