@@ -1,7 +1,5 @@
 advent_of_code::solution!(10);
 
-use std::iter::successors;
-
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
 struct Pos {
     x: usize,
@@ -92,27 +90,6 @@ impl Topo {
             path.pop();
         }
     }
-}
-
-fn print_route(route: Vec<(Pos, u8)>, max: &Pos) {
-    println!("==========");
-    for y in 0..max.y {
-        print!("|");
-        for x in 0..max.x {
-            let mut found = false;
-            for r in &route {
-                if r.0.x == x && r.0.y == y {
-                    found = true;
-                    print!("{}", r.1);
-                }
-            }
-            if !found {
-                print!(" ");
-            }
-        }
-        println!("|");
-    }
-    println!("==========");
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
