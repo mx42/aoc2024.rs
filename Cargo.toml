@@ -27,6 +27,7 @@ clippy = "0.0.302"
 dhat = { version = "0.3.3", optional = true }
 fmt = "0.1.0"
 itertools = "0.13.0"
+memoize = "0.4.2"
 pico-args = "0.5.0"
 regex = "1.11.1"
 tinyjson = "2.5.1"
