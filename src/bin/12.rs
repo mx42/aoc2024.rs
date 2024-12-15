@@ -1,8 +1,6 @@
 advent_of_code::solution!(12);
 
-use itertools::Itertools;
 use std::collections::HashMap;
-use std::iter::successors;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Pos {
@@ -90,9 +88,7 @@ impl Region {
     }
 
     fn area(&self) -> usize {
-        let area = self.ps.len();
-        // println!("Region {:?} -> area: {:?}", self.c, area);
-        area
+        self.ps.len()
     }
 
     fn perimeter(&self) -> usize {
@@ -159,7 +155,7 @@ impl Region {
             let l = match ps.len() {
                 2 => {
                     match ps
-                        .into_iter()
+                        .iter()
                         .fold(Pos::origin(), |acc, p2| acc.add(&p.diff(p2)))
                     {
                         Pos { x: 0, y: 0 } => 0,
@@ -170,9 +166,9 @@ impl Region {
                 4 => 4,
                 _ => 0,
             };
-            let neighbors_vec = ps
-                .into_iter()
-                .fold(Pos::origin(), |acc, p2| acc.add(&p.diff(p2)));
+            // let neighbors_vec = ps
+            //     .iter()
+            //     .fold(Pos::origin(), |acc, p2| acc.add(&p.diff(p2)));
             // println!("  * Outward angle(s) around: {:?} -> {}", p, l);
             // println!("     Neighbors vec: {:?}", neighbors_vec);
             outward_angles += l;
@@ -184,14 +180,12 @@ impl Region {
         let inward_angles = neighbors_map
             .values()
             .map(|ps| {
-                let l = match ps.len() {
+                match ps.len() {
                     2 => 1,
                     3 => 2,
                     4 => 4,
                     _ => 0,
-                };
-                // println!("  * Inward angle(s) around: ?? -> {}", l);
-                l
+                }
             })
             .sum::<usize>();
         // println!("Region {:} -> inward angles: {}, outward angles: {}", self.c, inward_angles, outward_angles);
@@ -200,49 +194,49 @@ impl Region {
     }
 }
 
-fn count_sides(path: &mut Vec<Pos>) -> usize {
-    if path.len() <= 1 {
-        return 0;
-    }
+// fn count_sides(path: &mut Vec<Pos>) -> usize {
+//     if path.len() <= 1 {
+//         return 0;
+//     }
 
-    let start = path.remove(0);
-    let directions = [
-        Pos { x: 0, y: 1 },  // up
-        Pos { x: 1, y: 0 },  // right
-        Pos { x: 0, y: -1 }, // down
-        Pos { x: -1, y: 0 }, // left
-    ];
-    let steps = successors(Some((start, 1, None)), |(cur, sides, d_idx)| {
-        // println!("Current: {:?}", cur);
-        if path.is_empty() {
-            return None;
-        }
-        for i in 0..4 {
-            let dir = directions[(d_idx.unwrap_or(0) + i) % 4].clone();
-            let next = cur.add(&dir);
-            if let Some(ofs) = path.iter().position(|p| p == &next) {
-                // println!("  Trying direction {:?} -> {:?} (Found!)", dir, next);
-                let new_cur = path.remove(ofs);
-                let new_sides = sides
-                    + if d_idx.is_some() && i > 0 {
-                        // println!("(new direction, incrementing sides: {:?})", sides + 1);
-                        1
-                    } else {
-                        // println!("(same direction, sides: {:?})", sides);
-                        0
-                    };
-                return Some((new_cur, new_sides, Some(d_idx.unwrap_or(0) + i)));
-                // } else {
-                // println!("  Trying direction {:?} -> {:?} (Not found)", dir, next);
-            }
-        }
-        let new_cur = path.remove(0);
-        // println!("No consecutive neighbor found -> Trying new side (sides: {})", sides + 1);
-        Some((new_cur, sides + 1, None))
-    })
-    .collect::<Vec<_>>();
-    steps.last().unwrap().1
-}
+//     let start = path.remove(0);
+//     let directions = [
+//         Pos { x: 0, y: 1 },  // up
+//         Pos { x: 1, y: 0 },  // right
+//         Pos { x: 0, y: -1 }, // down
+//         Pos { x: -1, y: 0 }, // left
+//     ];
+//     let steps = successors(Some((start, 1, None)), |(cur, sides, d_idx)| {
+//         // println!("Current: {:?}", cur);
+//         if path.is_empty() {
+//             return None;
+//         }
+//         for i in 0..4 {
+//             let dir = directions[(d_idx.unwrap_or(0) + i) % 4].clone();
+//             let next = cur.add(&dir);
+//             if let Some(ofs) = path.iter().position(|p| p == &next) {
+//                 // println!("  Trying direction {:?} -> {:?} (Found!)", dir, next);
+//                 let new_cur = path.remove(ofs);
+//                 let new_sides = sides
+//                     + if d_idx.is_some() && i > 0 {
+//                         // println!("(new direction, incrementing sides: {:?})", sides + 1);
+//                         1
+//                     } else {
+//                         // println!("(same direction, sides: {:?})", sides);
+//                         0
+//                     };
+//                 return Some((new_cur, new_sides, Some(d_idx.unwrap_or(0) + i)));
+//                 // } else {
+//                 // println!("  Trying direction {:?} -> {:?} (Not found)", dir, next);
+//             }
+//         }
+//         let new_cur = path.remove(0);
+//         // println!("No consecutive neighbor found -> Trying new side (sides: {})", sides + 1);
+//         Some((new_cur, sides + 1, None))
+//     })
+//     .collect::<Vec<_>>();
+//     steps.last().unwrap().1
+// }
 
 fn parse_input(input: &str) -> Vec<Region> {
     let mut res: Vec<Region> = Vec::new();
