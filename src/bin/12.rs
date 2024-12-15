@@ -179,13 +179,11 @@ impl Region {
         // println!("  Outward Angles: {}", outward_angles);
         let inward_angles = neighbors_map
             .values()
-            .map(|ps| {
-                match ps.len() {
-                    2 => 1,
-                    3 => 2,
-                    4 => 4,
-                    _ => 0,
-                }
+            .map(|ps| match ps.len() {
+                2 => 1,
+                3 => 2,
+                4 => 4,
+                _ => 0,
             })
             .sum::<usize>();
         // println!("Region {:} -> inward angles: {}, outward angles: {}", self.c, inward_angles, outward_angles);
