@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Pos {
     x: u8,
@@ -18,16 +17,28 @@ impl Pos {
     fn neighbors(&self, max: &Pos) -> Vec<Pos> {
         let mut res = Vec::new();
         if self.x > 0 {
-            res.push(Pos { x: self.x - 1, ..self.clone() });
+            res.push(Pos {
+                x: self.x - 1,
+                ..self.clone()
+            });
         }
         if self.y > 0 {
-            res.push(Pos { y: self.y - 1, ..self.clone() });
+            res.push(Pos {
+                y: self.y - 1,
+                ..self.clone()
+            });
         }
         if self.x < max.x {
-            res.push(Pos { x: self.x + 1, ..self.clone() });
+            res.push(Pos {
+                x: self.x + 1,
+                ..self.clone()
+            });
         }
         if self.y < max.y {
-            res.push(Pos { y: self.y + 1, ..self.clone() });
+            res.push(Pos {
+                y: self.y + 1,
+                ..self.clone()
+            });
         }
         res
     }
@@ -40,17 +51,18 @@ fn parse_input(input: &str) -> HashMap<Pos, usize> {
     input
         .lines()
         .enumerate()
-        .filter_map(|(n, l)|
+        .filter_map(|(n, l)| {
             if l.is_empty() {
                 None
             } else {
-                let mut v: Vec<_> = l.split(",").map(|n|n.parse::<u8>().unwrap()).collect();
+                let mut v: Vec<_> = l.split(",").map(|n| n.parse::<u8>().unwrap()).collect();
                 if v.len() < 2 {
-                    return None
+                    return None;
                 }
                 Some((Pos::init(v.remove(0), v.remove(0)), n))
-            })
-    .collect()
+            }
+        })
+        .collect()
 }
 
 fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
@@ -89,7 +101,7 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
         }
     }
     blockage_queue.sort_by_cached_key(|p| walls.get(p).unwrap());
-    
+
     // Sort blockage queue by wall number ?!
     for new_start in blockage_queue {
         let mut queue: VecDeque<Pos> = VecDeque::new();
@@ -113,7 +125,7 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
             }
         }
     }
-    
+
     None
 }
 
@@ -135,15 +147,15 @@ fn print_map(size: &Pos, walls: &HashMap<Pos, usize>, path: &Vec<Pos>) {
 
 pub fn part_one(input: &str) -> Option<usize> {
     let mut coords = parse_input(input);
-    let (limit, end) = if coords.len() < 100 { // Test case
+    let (limit, end) = if coords.len() < 100 {
+        // Test case
         (12, Pos::init(6, 6))
     } else {
         (1024, Pos::init(70, 70))
     };
     coords.retain(|_, v| *v < limit);
 
-    bfs(&coords, Pos::init(0, 0), &end)
-        .map(|r| r.len())
+    bfs(&coords, Pos::init(0, 0), &end).map(|r| r.len())
 }
 
 pub fn part_two(input: &str) -> Option<String> {

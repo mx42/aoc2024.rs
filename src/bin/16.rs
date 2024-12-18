@@ -121,7 +121,8 @@ impl TryFrom<&str> for State {
         //     y: input.len(),
         // };
         // let input: Vec<(Pos, char)> = input
-        let input: Vec<_> = input.lines()
+        let input: Vec<_> = input
+            .lines()
             .enumerate()
             .flat_map(|(y, l)| {
                 l.chars().enumerate().filter_map(move |(x, c)| {
