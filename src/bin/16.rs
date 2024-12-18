@@ -52,8 +52,8 @@ impl Pos {
 struct State {
     map: HashMap<Pos, char>,
     start: Pos,
-    end: Pos,
-    size: Pos,
+    // end: Pos,
+    // size: Pos,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -116,13 +116,12 @@ impl Path {
 impl TryFrom<&str> for State {
     type Error = ();
     fn try_from(input: &str) -> Result<State, Self::Error> {
-        let input = input.lines().collect::<Vec<_>>();
-        let size = Pos {
-            x: input[0].len(),
-            y: input.len(),
-        };
-        let input: Vec<(Pos, char)> = input
-            .iter()
+        // let size = Pos {
+        //     x: input[0].len(),
+        //     y: input.len(),
+        // };
+        // let input: Vec<(Pos, char)> = input
+        let input: Vec<_> = input.lines()
             .enumerate()
             .flat_map(|(y, l)| {
                 l.chars().enumerate().filter_map(move |(x, c)| {
@@ -135,7 +134,7 @@ impl TryFrom<&str> for State {
             })
             .collect();
         let start = input.iter().find(|(_, c)| *c == 'S').ok_or(())?.0.clone();
-        let end = input.iter().find(|(_, c)| *c == 'E').ok_or(())?.0.clone();
+        // let end = input.iter().find(|(_, c)| *c == 'E').ok_or(())?.0.clone();
         let mut map = HashMap::new();
         for (k, v) in input.into_iter() {
             map.insert(k, v);
@@ -143,8 +142,8 @@ impl TryFrom<&str> for State {
         Ok(State {
             map,
             start,
-            end,
-            size,
+            // end,
+            // size,
         })
     }
 }
@@ -176,24 +175,24 @@ impl State {
         all_paths
     }
 
-    fn print_path(&self, path: &Path) {
-        println!();
-        println!("Path score: {}", path.score());
-        for y in 0..self.size.y {
-            for x in 0..self.size.x {
-                let p = Pos { x, y };
-                if path.have_visited(&p) {
-                    print!("o");
-                } else if self.map.contains_key(&p) {
-                    print!(" ");
-                } else {
-                    print!("#");
-                }
-            }
-            println!();
-        }
-        println!()
-    }
+    // fn print_path(&self, path: &Path) {
+    //     println!();
+    //     println!("Path score: {}", path.score());
+    //     for y in 0..self.size.y {
+    //         for x in 0..self.size.x {
+    //             let p = Pos { x, y };
+    //             if path.have_visited(&p) {
+    //                 print!("o");
+    //             } else if self.map.contains_key(&p) {
+    //                 print!(" ");
+    //             } else {
+    //                 print!("#");
+    //             }
+    //         }
+    //         println!();
+    //     }
+    //     println!()
+    // }
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
@@ -204,7 +203,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     st.get_paths().iter().map(|p| p.score()).min()
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(_input: &str) -> Option<u32> {
     None
 }
 

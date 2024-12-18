@@ -18,7 +18,7 @@ impl State {
         );
         let two: i32 = 2;
         let res = self.registers[0].checked_div(two.pow(combo as u32))?;
-        let mut new_registers = self.registers.clone();
+        let mut new_registers = self.registers;
         new_registers[reg] = res;
         Some(Self {
             registers: new_registers,
@@ -30,7 +30,7 @@ impl State {
     fn bxl(&self, combo: i32) -> Option<Self> {
         println!("BXL reg 1 ^ {} => reg 1", combo);
         let res = self.registers[1] ^ combo;
-        let mut new_registers = self.registers.clone();
+        let mut new_registers = self.registers;
         new_registers[1] = res;
         Some(Self {
             registers: new_registers,
@@ -41,7 +41,7 @@ impl State {
 
     fn bst(&self, combo: i32) -> Option<Self> {
         println!("BST {} % 8 => reg 1", combo);
-        let mut new_registers = self.registers.clone();
+        let mut new_registers = self.registers;
         new_registers[1] = combo % 8;
         Some(Self {
             registers: new_registers,
@@ -68,7 +68,7 @@ impl State {
 
     fn bxc(&self) -> Option<Self> {
         println!("BXC reg 1 ^ reg 2 => reg 1");
-        let mut new_registers = self.registers.clone();
+        let mut new_registers = self.registers;
         new_registers[1] = self.registers[1] ^ self.registers[2];
         Some(Self {
             registers: new_registers,
@@ -101,16 +101,13 @@ impl State {
         }
         let opcode = self.memory.get(self.ptr).unwrap();
         let combo = *self.memory.get(self.ptr + 1).unwrap();
-        if combo < 0 || combo > 6 {
-            return None;
-        }
         let combo_value = match combo {
-            0..=3 => combo,
-            4 => self.registers[0],
-            5 => self.registers[1],
-            6 => self.registers[2],
-            _ => panic!(),
-        };
+            0..=3 => Some(combo),
+            4 => Some(self.registers[0]),
+            5 => Some(self.registers[1]),
+            6 => Some(self.registers[2]),
+            _ => None,
+        }?;
         match opcode {
             0 => self.dv(0, combo_value),
             1 => self.bxl(combo_value),
@@ -170,7 +167,7 @@ pub fn part_one(input: &str) -> Option<String> {
     State::try_from(input).ok().map(|s| s.run().get_output())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(_input: &str) -> Option<u32> {
     None
 }
 
