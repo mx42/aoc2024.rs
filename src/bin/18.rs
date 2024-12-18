@@ -42,16 +42,18 @@ impl Pos {
         }
         res
     }
-    // fn to_string(&self) -> String {
-    //     format!("{},{}", self.x, self.y)
-    // }
 }
 
-fn parse_input(input: &str) -> HashMap<Pos, usize> {
+impl std::fmt::Display for Pos {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "{},{}", self.x, self.y)
+    }
+}
+
+fn parse_input(input: &str) -> Vec<Pos> {
     input
         .lines()
-        .enumerate()
-        .filter_map(|(n, l)| {
+        .filter_map(|l| {
             if l.is_empty() {
                 None
             } else {
@@ -59,18 +61,16 @@ fn parse_input(input: &str) -> HashMap<Pos, usize> {
                 if v.len() < 2 {
                     return None;
                 }
-                Some((Pos::init(v.remove(0), v.remove(0)), n))
+                Some(Pos::init(v.remove(0), v.remove(0)))
             }
         })
         .collect()
 }
 
-fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
+fn bfs(walls: &HashSet<Pos>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
     let mut queue: VecDeque<Pos> = VecDeque::new();
     let mut visited: HashSet<Pos> = HashSet::new();
     let mut parent_map: HashMap<Pos, Pos> = HashMap::new();
-
-    let mut blockage_queue: Vec<Pos> = Vec::new();
 
     queue.push_back(start.clone());
     visited.insert(start);
@@ -89,10 +89,7 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
             if visited.contains(&n) {
                 continue;
             }
-            if walls.contains_key(&n) {
-                if !blockage_queue.contains(&n) {
-                    blockage_queue.push(n);
-                }
+            if walls.contains(&n) {
                 continue;
             }
             queue.push_back(n.clone());
@@ -100,62 +97,38 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
             parent_map.insert(n, current.clone());
         }
     }
-    blockage_queue.sort_by_cached_key(|p| walls.get(p).unwrap());
-
-    // Sort blockage queue by wall number ?!
-    for new_start in blockage_queue {
-        let mut queue: VecDeque<Pos> = VecDeque::new();
-        let mut visited = visited.clone();
-        queue.push_back(new_start.clone());
-        while let Some(current) = queue.pop_front() {
-            if current == *end {
-                println!("Found end by removing {:?}!", new_start);
-                println!("Wall at time: {}", walls.get(&new_start)?);
-                break;
-            }
-            for n in current.neighbors(end) {
-                if visited.contains(&n) {
-                    continue;
-                }
-                if walls.contains_key(&n) {
-                    continue;
-                }
-                queue.push_back(n.clone());
-                visited.insert(n.clone());
-            }
-        }
-    }
-
     None
 }
 
-fn print_map(size: &Pos, walls: &HashMap<Pos, usize>, path: &[Pos]) {
-    for y in 0..=size.y {
-        for x in 0..=size.x {
-            let p = Pos::init(x, y);
-            if path.contains(&p) {
-                print!("O");
-            } else if walls.contains_key(&p) {
-                print!("#");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
-}
-
 pub fn part_one(input: &str) -> Option<usize> {
-    let mut coords = parse_input(input);
+    let coords = parse_input(input);
     let (limit, end) = if coords.len() < 100 {
-        // Test case
         (12, Pos::init(6, 6))
     } else {
         (1024, Pos::init(70, 70))
     };
-    coords.retain(|_, v| *v < limit);
+    let walls: HashSet<Pos> = coords.into_iter().take(limit).collect();
+    bfs(&walls, Pos::init(0, 0), &end).map(|r| r.len())
+}
 
-    bfs(&coords, Pos::init(0, 0), &end).map(|r| r.len())
+fn get_first_failure(coords: &[Pos], end: &Pos) -> usize {
+    let mut last_success = 0;
+    let mut first_failure = coords.len();
+
+    while last_success < first_failure - 1 {
+        let limit = last_success + (first_failure - last_success) / 2;
+        // println!(" {} <~~ {}? ~~> {}", last_success, limit, first_failure);
+        let walls: HashSet<Pos> = coords.iter().take(limit + 1).cloned().collect();
+
+        if bfs(&walls, Pos::init(0, 0), end).is_some() {
+            // println!("        -> Success");
+            last_success = limit;
+        } else {
+            // println!("        -> Failure");
+            first_failure = limit;
+        }
+    }
+    first_failure
 }
 
 pub fn part_two(input: &str) -> Option<String> {
@@ -165,12 +138,8 @@ pub fn part_two(input: &str) -> Option<String> {
     } else {
         Pos::init(70, 70)
     };
-
-    print_map(&end, &coords, &[]);
-
-    let route = bfs(&coords, Pos::init(0, 0), &end);
-    println!("{:?}", route);
-    None
+    let first_failure = get_first_failure(&coords, &end);
+    coords.get(first_failure).unwrap().to_string().into()
 }
 
 #[cfg(test)]
