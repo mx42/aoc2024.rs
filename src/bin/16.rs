@@ -1,7 +1,7 @@
 advent_of_code::solution!(16);
 
-use std::collections::HashMap;
 use std::collections::vec_deque::VecDeque;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 struct Pos {
@@ -13,13 +13,37 @@ impl Pos {
     fn neighbors(&self) -> Vec<Step> {
         let mut res: Vec<Step> = Vec::new();
         if self.x > 0 {
-            res.push(Step { pos: Pos { x: self.x - 1, y: self.y }, dir: Dir::Left });
+            res.push(Step {
+                pos: Pos {
+                    x: self.x - 1,
+                    y: self.y,
+                },
+                dir: Dir::Left,
+            });
         }
         if self.y > 0 {
-            res.push(Step { pos: Pos { x: self.x, y: self.y - 1 }, dir: Dir::Up });
+            res.push(Step {
+                pos: Pos {
+                    x: self.x,
+                    y: self.y - 1,
+                },
+                dir: Dir::Up,
+            });
         }
-        res.push(Step { pos: Pos { x: self.x + 1, y: self.y }, dir: Dir::Right });
-        res.push(Step { pos: Pos { x: self.x, y: self.y + 1 }, dir: Dir::Down });
+        res.push(Step {
+            pos: Pos {
+                x: self.x + 1,
+                y: self.y,
+            },
+            dir: Dir::Right,
+        });
+        res.push(Step {
+            pos: Pos {
+                x: self.x,
+                y: self.y + 1,
+            },
+            dir: Dir::Down,
+        });
         res
     }
 }
@@ -48,16 +72,19 @@ struct Step {
 
 #[derive(Debug, Clone)]
 struct Path {
-    steps: VecDeque<Step>
+    steps: VecDeque<Step>,
 }
 
 impl Path {
     fn init(pos: Pos) -> Self {
         Self {
-            steps: VecDeque::from(vec![Step {pos, dir: Dir::Right}]),
+            steps: VecDeque::from(vec![Step {
+                pos,
+                dir: Dir::Right,
+            }]),
         }
     }
-    
+
     fn current(&self) -> Pos {
         self.steps.back().unwrap().pos.clone()
     }
@@ -82,7 +109,7 @@ impl Path {
             }
             cur_dir = Some(step.dir);
         }
-        score + 1  // duh?!
+        score + 1 // duh?!
     }
 }
 
@@ -90,19 +117,22 @@ impl TryFrom<&str> for State {
     type Error = ();
     fn try_from(input: &str) -> Result<State, Self::Error> {
         let input = input.lines().collect::<Vec<_>>();
-        let size = Pos { x: input[0].len(), y: input.len() };
-        let input: Vec<(Pos, char)> = input.iter()
+        let size = Pos {
+            x: input[0].len(),
+            y: input.len(),
+        };
+        let input: Vec<(Pos, char)> = input
+            .iter()
             .enumerate()
-            .flat_map(|(y, l)|
-                l
-                    .chars()
-                    .enumerate()
-                    .filter_map(move |(x, c)|
-                        if c == '#' {
-                            None
-                        } else {
-                            Some((Pos {x, y}, c))
-                        }))
+            .flat_map(|(y, l)| {
+                l.chars().enumerate().filter_map(move |(x, c)| {
+                    if c == '#' {
+                        None
+                    } else {
+                        Some((Pos { x, y }, c))
+                    }
+                })
+            })
             .collect();
         let start = input.iter().find(|(_, c)| *c == 'S').ok_or(())?.0.clone();
         let end = input.iter().find(|(_, c)| *c == 'E').ok_or(())?.0.clone();
@@ -128,8 +158,11 @@ impl State {
             all_paths.push(path);
             return;
         }
-        for next in cur.neighbors().iter()
-            .filter(|p| self.map.contains_key(&p.pos) && !path.have_visited(&p.pos)) {
+        for next in cur
+            .neighbors()
+            .iter()
+            .filter(|p| self.map.contains_key(&p.pos) && !path.have_visited(&p.pos))
+        {
             let mut new_path = path.clone();
             new_path.push(next.clone());
             self.compute_all_paths(new_path, all_paths);
@@ -168,7 +201,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     // for p in st.get_paths() {
     //     st.print_path(&p);
     // }
-    st.get_paths().iter().map(|p|p.score()).min()
+    st.get_paths().iter().map(|p| p.score()).min()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
