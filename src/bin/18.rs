@@ -78,7 +78,7 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
         if current == *end {
             let mut path = vec![];
             let mut parent = current.clone();
-            while let Some(&ref p) = parent_map.get(&parent) {
+            while let Some(p) = parent_map.get(&parent) {
                 path.push(p.clone());
                 parent = p.clone();
             }
@@ -129,7 +129,7 @@ fn bfs(walls: &HashMap<Pos, usize>, start: Pos, end: &Pos) -> Option<Vec<Pos>> {
     None
 }
 
-fn print_map(size: &Pos, walls: &HashMap<Pos, usize>, path: &Vec<Pos>) {
+fn print_map(size: &Pos, walls: &HashMap<Pos, usize>, path: &[Pos]) {
     for y in 0..=size.y {
         for x in 0..=size.x {
             let p = Pos::init(x, y);
@@ -166,7 +166,7 @@ pub fn part_two(input: &str) -> Option<String> {
         Pos::init(70, 70)
     };
 
-    print_map(&end, &coords, &vec![]);
+    print_map(&end, &coords, &[]);
 
     let route = bfs(&coords, Pos::init(0, 0), &end);
     println!("{:?}", route);
